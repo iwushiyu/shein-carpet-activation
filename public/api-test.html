@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result.success {
+            background: #f0fff4;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        .result.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+        .result.info {
+            background: #ebf8ff;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #2d3748;
+        }
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 API测试工具</h1>
+        <p>用于诊断激活码生成问题</p>
+
+        <div class="test-section">
+            <div class="test-title">1. 测试激活状态检查API</div>
+            <button class="btn btn-primary" onclick="testCheckActivation()">测试激活状态检查</button>
+            <div id="checkResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">2. 测试环境变量配置</div>
+            <div class="form-group">
+                <label class="form-label">管理员密钥</label>
+                <input type="password" id="adminSecret" class="form-input" placeholder="输入管理员密钥">
+            </div>
+            <button class="btn btn-primary" onclick="testEnvironmentVariables()">测试环境变量</button>
+            <div id="envResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">3. 测试激活码生成</div>
+            <div class="form-group">
+                <label class="form-label">生成数量</label>
+                <input type="number" id="codeCount" class="form-input" value="1" min="1" max="10">
+            </div>
+            <button class="btn btn-primary" onclick="testGenerateCodes()">测试生成激活码</button>
+            <div id="generateResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">4. 运行所有测试</div>
+            <button class="btn btn-secondary" onclick="runAllTests()">运行所有测试</button>
+            <div id="allResults" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://shein-carpet-activation-git-main-wushiyus-projects-e7fd2adf.vercel.app/api';
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = content;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+
+        async function testCheckActivation() {
+            showResult('checkResult', '测试中...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/check-activation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: 'test_user' })
+                });
+                
+                const result = await response.json();
+                showResult('checkResult', `状态码: ${response.status}\n响应: ${JSON.stringify(result, null, 2)}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('checkResult', `错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEnvironmentVariables() {
+            const adminSecret = document.getElementById('adminSecret').value;
+            if (!adminSecret) {
+                showResult('envResult', '请输入管理员密钥', 'error');
+                return;
+            }
+
+            showResult('envResult', '测试中...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/generate-codes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminSecret}`
+                    },
+                    body: JSON.stringify({
+                        count: 1,
+                        expires_days: 30,
+                        created_by: 'test'
+                    })
+                });
+                
+                const result = await response.json();
+                showResult('envResult', `状态码: ${response.status}\n响应: ${JSON.stringify(result, null, 2)}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('envResult', `错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGenerateCodes() {
+            const adminSecret = document.getElementById('adminSecret').value;
+            const codeCount = document.getElementById('codeCount').value;
+            
+            if (!adminSecret) {
+                showResult('generateResult', '请输入管理员密钥', 'error');
+                return;
+            }
+
+            showResult('generateResult', '测试中...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/generate-codes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminSecret}`
+                    },
+                    body: JSON.stringify({
+                        count: parseInt(codeCount),
+                        expires_days: 30,
+                        created_by: 'test'
+                    })
+                });
+                
+                const result = await response.json();
+                showResult('generateResult', `状态码: ${response.status}\n响应: ${JSON.stringify(result, null, 2)}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                showResult('generateResult', `错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function runAllTests() {
+            showResult('allResults', '开始运行所有测试...\n\n', 'info');
+            
+            // 测试1
+            showResult('allResults', '测试1: 激活状态检查...\n', 'info');
+            await testCheckActivation();
+            
+            // 测试2
+            showResult('allResults', '测试2: 环境变量配置...\n', 'info');
+            await testEnvironmentVariables();
+            
+            // 测试3
+            showResult('allResults', '测试3: 激活码生成...\n', 'info');
+            await testGenerateCodes();
+            
+            showResult('allResults', '所有测试完成！请查看上方各测试的结果。', 'info');
+        }
+    </script>
+</body>
+</html>
