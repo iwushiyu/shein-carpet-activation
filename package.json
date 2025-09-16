@@ -1,0 +1,26 @@
+{
+  "name": "shein-carpet-calculator",
+  "version": "2.0.0",
+  "description": "SHEIN地毯SKC自动计算工具 - 激活码版本",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "keywords": [
+    "shein",
+    "carpet",
+    "calculator",
+    "chrome-extension",
+    "activation"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

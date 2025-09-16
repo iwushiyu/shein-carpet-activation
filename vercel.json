@@ -1,0 +1,18 @@
+{
+  "functions": {
+    "api/validate-activation.js": {
+      "maxDuration": 10
+    },
+    "api/generate-codes.js": {
+      "maxDuration": 10
+    },
+    "api/check-activation.js": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "SUPABASE_URL": "@supabase-url",
+    "SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "ADMIN_SECRET": "@admin-secret"
+  }
+}
